@@ -1,13 +1,17 @@
 {
-  "name": "",
+  "name": "polls-de",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
-  "main": "src/functions/*.js",
+  "main": "GetNewPolls/index.js",
   "scripts": {
     "start": "func start",
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
+    "18": "^0.0.0",
+    "axios": "^1.7.3",
+    "cheerio": "^1.0.0-rc.12",
     "@azure/functions": "^4.0.0"
   },
   "devDependencies": {
