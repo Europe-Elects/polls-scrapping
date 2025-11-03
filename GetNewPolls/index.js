@@ -11,7 +11,7 @@ async function sendSlack(poll) {
     "LINKE": "🟣",
     "AfD": "🔵",
     "BSW": "🟤",
-    "Sonstige": "⚪"
+    "Others": "⚪"
   };
 
   // Build results text
@@ -24,7 +24,7 @@ async function sendSlack(poll) {
   const msg = `🗳️ *New German Poll: ${poll.institute}*\n` +
     `📅 Published: ${poll.published}\n\n` +
     `*Results:*\n${resultsText}\n` +
-    `<${poll.link}|View full poll details>`;
+    `🔗 ${poll.link}`;
 
   await fetch(SLACK_WEBHOOK, {
     method: "POST",

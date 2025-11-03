@@ -74,33 +74,72 @@ export default async function scrapeWahlrecht() {
     "lin": "LIN",
     "bsw": "BSW",
     "fdp": "FDP",
-    "son": "SON",
+    "son": "Others",
   };
 
   for (const [rowId, party] of Object.entries(partyRowMap)) {
     const row = table.find(`tr#${rowId}`);
+    
     row.find("td").each((colIndex, cell) => {
-      const institute = institutes[colIndex];
-      const date = dates[colIndex];
-      if (!institute || !date?.parsed) return;
+      
+      // ✅ Start with default institute from header row
+      let institute = institutes[colIndex];
+      if (!institute) return;
+  
+      let instituteName = institute.name;
+      let instituteLink = institute.link;
+  
+      // ✅ Try override with hyperlink inside the party cell → very reliable for INSA
+      const anchor = $(cell).find("a[href]").first();
+      // ✅ More reliable institute identification
+      if (anchor.length) {
+        const href = anchor.attr("href").toLowerCase();
+      
+        // Order: most specific first
+        if (href.includes("insa")) {
+          instituteName = "INSA";
+        } else if (href.includes("yougov")) {
+          instituteName = "YouGov";
+        } else if (href.includes("forsa")) {
+          instituteName = "Forsa";
+        } else if (href.includes("kantar")) {
+          instituteName = "Kantar";
+        } else if (href.includes("allensbach")) {
+          instituteName = "Allensbach";
+        } else if (href.includes("dimap")) {
+          instituteName = "Infratest dimap";
+        } else if (href.includes("gms")) {
+          instituteName = "GMS";
+        } else if (href.includes("verian") || href.includes("emnid")) {
+          instituteName = "Verian (Emnid)";
+        }
+      
+        instituteLink = href;
+      }
 
+      institute = { name: instituteName, link: instituteLink };
+  
+      const date = dates[colIndex];
+      if (!date?.parsed) return;
+  
       const valueText = $(cell).text().trim().replace(",", ".");
       const value = parseFloat(valueText);
       if (isNaN(value)) return;
-
+  
       const pollKey = `${institute.name}_${date.parsed}`;
+  
       if (!state[pollKey]) {
         state[pollKey] = {
           institute: institute.name,
           link: `https://www.wahlrecht.de/umfragen/${institute.link}`,
           published: date.parsed,
-          results: {}
+          results: {},
         };
       }
-
+  
       state[pollKey].results[party] = value;
     });
-  }
+  }  
 
   // ✅ Detect new or updated polls correctly
   const prevState = await loadState();
