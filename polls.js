@@ -53,11 +53,15 @@ export default async function scrapeWahlrecht() {
 
   const table = $("table.wilko");
 
-  const institutes = table.find("thead tr th.in").map((i, el) => ({
+  // ✅ Skip first th (the "Institute" label), only get actual institute columns
+  const institutes = table.find("thead tr th.in").slice(1).map((i, el) => ({
     name: $(el).text().split(/\s+/)[0].trim(),
     link: $(el).find("a").attr("href")
   })).get();
 
+  console.log(`🏢 Found ${institutes.length} institutes:`, institutes.map(i => i.name));
+
+  // ✅ Get dates (these don't have the extra column issue)
   const dates = table.find("tbody tr#datum td").map((i, el) => {
     const raw = $(el).text().trim();
     return {
@@ -65,6 +69,8 @@ export default async function scrapeWahlrecht() {
       parsed: parseGermanDate(raw),
     };
   }).get();
+
+  console.log(`📅 Found ${dates.length} dates`);
 
   const partyRowMap = {
     "cdu": "CDU",
@@ -82,16 +88,15 @@ export default async function scrapeWahlrecht() {
     
     row.find("td").each((colIndex, cell) => {
       
-      // ✅ Start with default institute from header row
+      // ✅ Now the indices match correctly
       let institute = institutes[colIndex];
       if (!institute) return;
   
       let instituteName = institute.name;
       let instituteLink = institute.link;
   
-      // ✅ Try override with hyperlink inside the party cell → very reliable for INSA
+      // ✅ Try override with hyperlink inside the party cell
       const anchor = $(cell).find("a[href]").first();
-      // ✅ More reliable institute identification
       if (anchor.length) {
         const href = anchor.attr("href").toLowerCase();
       
@@ -102,8 +107,8 @@ export default async function scrapeWahlrecht() {
           instituteName = "YouGov";
         } else if (href.includes("forsa")) {
           instituteName = "Forsa";
-        } else if (href.includes("kantar")) {
-          instituteName = "Kantar";
+        } else if (href.includes("politbarometer")) {
+          instituteName = "Forsch'gr.Wahlen";
         } else if (href.includes("allensbach")) {
           instituteName = "Allensbach";
         } else if (href.includes("dimap")) {
@@ -147,6 +152,7 @@ export default async function scrapeWahlrecht() {
     if (!prevState[pollKey] ||
         JSON.stringify(prevState[pollKey].results) !== JSON.stringify(pollData.results)) {
       updated.push(pollData);
+      console.log(`✨ New/Updated: ${pollData.institute} - ${pollData.published}`);
     }
   }
 
