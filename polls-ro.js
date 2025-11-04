@@ -88,9 +88,10 @@ export default async function scrapeRomania() {
     const pollData = {
         institute,
         published: date,
-        link,
+        link: sourceLink,
         results,
-      };      
+      };
+           
   
     if (!prevState[pollKey] ||
         JSON.stringify(prevState[pollKey].results) !== JSON.stringify(results)) {

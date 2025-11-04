@@ -54,7 +54,7 @@ export default async function scrapeWahlrecht() {
   const table = $("table.wilko");
 
   const institutes = table.find("thead tr th.in").map((i, el) => ({
-    name: $(el).text().trim().replace(/\s+/g, " "),
+    name: $(el).text().split(/\s+/)[0].trim(),
     link: $(el).find("a").attr("href")
   })).get();
 
