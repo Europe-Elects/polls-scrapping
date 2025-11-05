@@ -17,10 +17,9 @@ export default async function (context, myTimer) {
     lines.push(`:date: Published: ${p.published}`);
     lines.push(`Results:`);
 
-    // Order for output
     const order = ["CDU", "AFD", "SPD", "GRU", "LIN", "FDP", "FW", "BSW", "Others"];
     for (const k of order) {
-      if (p.results[k] == null) continue;        // skip missing
+      if (p.results[k] == null) continue;
       const val = p.results[k];
       const label = k === "Others" ? "Others" : k;
       lines.push(`${symbolFor(label)} ${label}: ${val}%`);
@@ -41,7 +40,6 @@ export default async function (context, myTimer) {
 }
 
 function symbolFor(party) {
-  // Keep your previous emoji mapping; quick neutral defaults below:
   const map = {
     CDU: ":black_small_square:",
     AFD: ":black_small_square:",

@@ -10,7 +10,7 @@ const blobService = BlobServiceClient.fromConnectionString(CONN_STRING);
 const containerClient = blobService.getContainerClient(CONTAINER);
 const blobClient = containerClient.getBlockBlobClient(BLOB_NAME);
 
-// ---------- utils ----------
+
 async function streamToString(stream) {
   const chunks = [];
   for await (const chunk of stream) chunks.push(chunk);
@@ -33,7 +33,6 @@ async function saveState(state) {
   await blobClient.upload(body, Buffer.byteLength(body), { overwrite: true });
 }
 
-// 17.10.2025  |  October 10, 2025  |  03.11.2025
 function parseDateFlexible(s) {
   if (!s) return null;
   const txt = s.trim().replace(/\u00A0/g, " "); // normalize nbsp
@@ -63,7 +62,7 @@ function parseDateFlexible(s) {
     const y = m2[3];
     return `${y}-${mo}-${d}`;
   }
-  // German month (in case some institute uses it): 17. Oktober 2025
+
   const m3 = txt.match(/^(\d{1,2})\.\s*(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s+(\d{4})$/i);
   if (m3) {
     const map = {
@@ -76,7 +75,7 @@ function parseDateFlexible(s) {
     const y = m3[3];
     if (mo) return `${y}-${mo}-${d}`;
   }
-  return null; // fallback
+  return null;
 }
 
 function normVal(txt) {
@@ -87,14 +86,6 @@ function normVal(txt) {
   return Number.isFinite(n) ? n : null;
 }
 
-// ---------- per-institute scraper ----------
-/**
- * We scrape the institute’s own page. Each has a single 'wilko' table:
- * Columns (after date & spacer) are:
- *  CDU/CSU, SPD, GRÜNE, FDP, LINKE, AfD, FW, BSW, Sonstige, spacer, Befragte, Zeitraum
- * We only take the **first valid poll row** (class usually 's'), not 'ws' (election).
- * We keep 9 groups: CDU, SPD, GRU, FDP, LIN, AFD, FW (only if present), BSW, Others.
- */
 async function fetchInstituteLatest(base, { name, path }) {
   const url = `${base}${path}`;
   const { data } = await axios.get(url, { responseType: "text" });
@@ -155,13 +146,6 @@ async function fetchInstituteLatest(base, { name, path }) {
   };
 }
 
-// ---------- main export ----------
-/**
- * Scrapes latest polls from 8 institutes (pages), returns ONLY new/changed vs state.
- * Institutes:
- *  - Allensbach, Verian(Emnid), Forsa, Forschungsgruppe Wahlen (Politbarometer),
- *    GMS, Infratest dimap, INSA, YouGov
- */
 export default async function scrapeGermany() {
   const base = "https://www.wahlrecht.de/umfragen/";
   const institutes = [
@@ -186,7 +170,6 @@ export default async function scrapeGermany() {
 
       const key = `${poll.institute}_${poll.published}`;
 
-      // If we don't have it OR results changed, emit update
       const prevPoll = prev[key];
       const changed =
         !prevPoll ||
@@ -195,12 +178,8 @@ export default async function scrapeGermany() {
       if (changed) {
         updated.push(poll);
       }
-
-      // Always keep the latest entry for this institute (single line per your request)
       next[key] = poll;
     } catch (e) {
-      // Keep going; one institute failing shouldn't stop others
-      // You can log this from the caller
     }
   }
 
