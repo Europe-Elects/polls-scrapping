@@ -47,8 +47,17 @@ export default async function scrapeRomania() {
 
   console.log("📡 Fetching Romania poll table...");
   const { data } = await axios.get(
-    "https://ro.wikipedia.org/wiki/Alegeri_parlamentare_%C3%AEn_Rom%C3%A2nia,_2028#Sondaje_de_opinie"
+    "https://ro.wikipedia.org/wiki/Alegeri_parlamentare_%C3%AEn_Rom%C3%A2nia,_2028#Sondaje_de_opinie",
+    {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+      },
+    }
   );
+  
   const $ = cheerio.load(data);
 
   const table = $("table.wikitable").first();
