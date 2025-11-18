@@ -1,4 +1,4 @@
-import scrapeGermany from "../polls.js";
+import scrapeGermany from "../polls-de.js";
 
 const SLACK_WEBHOOK = process.env.SLACK_WEBHOOK;
 
