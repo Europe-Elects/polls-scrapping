@@ -16,5 +16,8 @@
   },
   "devDependencies": {
     "azure-functions-core-tools": "^4.x"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
