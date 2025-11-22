@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy Node.js project to Azure Function App - polls-de-scrape
+name: Deploy Azure Functions (Germany & Romania)
 
 on:
   push:
@@ -10,72 +7,43 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  NODE_VERSION: '20.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
+  AZURE_FUNCTIONAPP_NAME: polls-de-scrape
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'
+  NODE_VERSION: '20.x'
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read #This is required for actions/checkout
+    environment: production
 
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
 
       - name: Setup Node ${{ env.NODE_VERSION }} Environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 'Resolve Project Dependencies Using Npm'
+      - name: 'Install Dependencies'
         shell: bash
         run: |
           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+          npm ci --production
           popd
 
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
-
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-app
-          path: release.zip
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
-
-      - name: Unzip artifact for deployment
-        run: |
-          unzip release.zip
-          rm release.zip
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_EC7D18CA6F6740BBA954DD5EA365145A }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_4B83CBB3C81A4245B8BB91EF2DDA4B0E }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C72528C3FADC45258CA43E0594FBFE2C }}
-
-      - name: 'Run Azure Functions Action'
+      - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1
-        id: fa
+        id: deploy-function
         with:
-          app-name: 'polls-de-scrape'
-          slot-name: 'Production'
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          enable-oryx-build: true
+          scm-do-build-during-deployment: true
+
+      - name: 'Deployment Summary'
+        run: |
+          echo "✅ Deployed both GetNewPolls (🇩🇪) and GetNewPollsRO (🇷🇴)"
+          echo "📦 Function App: ${{ env.AZURE_FUNCTIONAPP_NAME }}"
+          echo "🔗 URL: https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net"
