@@ -6,6 +6,7 @@
   "main": "GetNewPolls/index.js",
   "scripts": {
     "start": "func start",
+    "build": "echo 'No build step required'",
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
